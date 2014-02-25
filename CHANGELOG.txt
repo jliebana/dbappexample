@@ -1,0 +1,13 @@
+DBExampleApp
+------------
+
+En este documento se detallan los cambios producidos en el proyecto (de más antiguo a más reciente):
+
+1.-Creación del proyecto Android y conexión utilizando OAuth a Dropbox:
+-----------------------------------------------------------------------
+
+-En este primer paso se ha creado el proyecto Android con Eclipse. 
+-Consultando la documentación disponible en la página de desarrollo de Dropbox para Android ( https://www.dropbox.com/developers/core/start/android ) se ha procedido descargar las librerías necesarias, así como configurar el proyecto para hacer uso de esta API.
+-Se ha desarrollado la autenticación siguiendo el modelo OAuth propuesto en la documentación oficial,y se ha estudiado el código de prueba disponible en el SDK de Dropbox con el fin de seguir las mejores prácticas.
+-La aplicación es capaz de llamar a la aplicación Dropbox o a la web para solicitar el acceso a la cuenta del usuario, mostrando un mensaje en caso de conseguirlo.
+-Esta autentificación es almacenada en las preferencias para no tener que molestar al usuario solicitando permisos cada vez que se abre la aplicación.
