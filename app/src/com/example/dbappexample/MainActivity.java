@@ -1,23 +1,41 @@
 package com.example.dbappexample;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
+import android.view.View;
+import android.widget.GridView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.dropbox.client2.DropboxAPI;
+import com.dropbox.client2.DropboxAPI.Entry;
 import com.dropbox.client2.android.AndroidAuthSession;
 import com.dropbox.client2.android.AuthActivity;
+import com.dropbox.client2.exception.DropboxException;
 import com.dropbox.client2.session.AppKeyPair;
-
+/**
+ *  Main Activity of the app.
+ * @author jliebana
+ *
+ */
 public class MainActivity extends Activity {
 
 	private static final String TAG = "MainActivity";
+
+	private Context context;
 
 	// Dropbox API related:
 	final static private String APP_KEY = "349qwp042wp9rkd";
@@ -29,11 +47,14 @@ public class MainActivity extends Activity {
 	final static private String ACCESS_SECRET_NAME = "ACCESS_SECRET";
 
 	private TextView mainLabel;
+	private final ArrayList<Entry> epubsEntries = new ArrayList<Entry>();
+
+	private ProgressBar progressbar;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		context = this;
 		// We create a new AuthSession so that we can use the Dropbox API.
 		AndroidAuthSession session = buildSession();
 		mDBApi = new DropboxAPI<AndroidAuthSession>(session);
@@ -45,7 +66,7 @@ public class MainActivity extends Activity {
 		mainLabel.setText("Connecting to dropbox...");
 
 		if (!mDBApi.getSession().isLinked()) {
-			//We check that if there is no session, we need to create a new one
+			// We check that if there is no session, we need to create a new one
 			mDBApi.getSession().startOAuth2Authentication(MainActivity.this);
 		}
 	}
@@ -73,9 +94,71 @@ public class MainActivity extends Activity {
 		}
 
 		if (mDBApi.getSession().isLinked()) {
-			mainLabel.setText("Successfully connected to Dropbox!");
+			mainLabel.setText("Successfully connected to Dropbox!\nDownloading files...");
+			downloadEpubsEntries();
 		}
 
+	}
+
+	/**
+	 * This handler will draw the epub icons once they are downloaded
+	 */
+	Handler handler = new Handler(Looper.getMainLooper()) {
+
+		@Override
+		public void handleMessage(Message msg) {
+			super.handleMessage(msg);
+			GridView gridView = (GridView) findViewById(R.id.gridView1);
+			progressbar = (ProgressBar) findViewById(R.id.loading_progress_bar);
+			gridView.setAdapter(new GridItemAdapter(context, epubsEntries));
+			
+			mainLabel.setVisibility(View.GONE);
+			progressbar.setVisibility(View.GONE);
+			gridView.setVisibility(View.VISIBLE);
+		}
+	};
+
+	/**
+	 * Method in charge of download all the epub metadata entries available in
+	 * the user's dropbox folder. The search is done over all the directories.
+	 */
+	private void downloadEpubsEntries() {
+		Thread t = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+
+				Entry dirent;
+				try {
+					LinkedList<String> dir = new LinkedList<String>();
+					dir.add("/");
+					while (dir.size() != 0) {
+						String currentDir = new String(dir.pop());
+						Log.d(TAG, "Current dir: " + currentDir);
+						dirent = mDBApi.metadata(currentDir, 0, null, true, null);
+						for (Entry currentEntry : dirent.contents) {
+							if (currentEntry.isDir) {
+								dir.push(new String(currentEntry.path));
+								Log.d(TAG, "DIR: " + currentEntry.path);
+							}
+							else {
+								Log.d(TAG, "DATA: " + currentEntry.path);
+								if (currentEntry.path.endsWith("epub")) {
+									Log.d(TAG, "EPUB: " + currentEntry.path);
+									epubsEntries.add(currentEntry);
+								}
+							}
+						}
+					}
+					Log.d(TAG, "DONE");
+				} catch (DropboxException e) {
+					Log.e(TAG, "Error retrieving files");
+					e.printStackTrace();
+				}
+				handler.sendEmptyMessage(0);
+			}
+		});
+		t.start();
 	}
 
 	/**

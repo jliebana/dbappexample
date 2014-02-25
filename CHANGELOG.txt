@@ -11,3 +11,14 @@ En este documento se detallan los cambios producidos en el proyecto (de más anti
 -Se ha desarrollado la autenticación siguiendo el modelo OAuth propuesto en la documentación oficial,y se ha estudiado el código de prueba disponible en el SDK de Dropbox con el fin de seguir las mejores prácticas.
 -La aplicación es capaz de llamar a la aplicación Dropbox o a la web para solicitar el acceso a la cuenta del usuario, mostrando un mensaje en caso de conseguirlo.
 -Esta autentificación es almacenada en las preferencias para no tener que molestar al usuario solicitando permisos cada vez que se abre la aplicación.
+-Para poder autenticarse, se ha creado una aplicación en dropbox a través de: https://www.dropbox.com/developers/apps/
+
+
+2.- Añadida descarga de metadatos de los ficheros en Dropbox y pantalla mostrando la lista de elementos:
+--------------------------------------------------------------------------------------------------------
+
+-Se ha creado una lista que contendrá cada una de las entradas de los ficheros en dropbox. Estas entradas se basan en la clase Entry de la API de Dropbox. Se ha decidido reutilizar esta clase en lugar de implementar una nueva por ser sencilla y contener la información deseada (nombre, path y fecha del fichero). Para un caso real sería mejor crear una clase independiente de la API.
+-Esta lista contiene los metadatos del fichero, lo que permite acceder a la información de cada uno de ellos sin la necesidad de descargar todos los ficheros.
+-Para construir esta lista se van revisando todos los directorios de Dropbox, y añadiendo a esta lista aquellos ficheros cuya extensión coincida con la deseada: ".epub".
+-Una vez construida, esta lista se muestra por pantalla, utilizando un icono (por el momento una imagen cualquiera) junto con el nombre del fichero.
+-Se ha decidido seguir utilizando la misma Activity que la implementada en la autenticación, ya que de momento ambas tareas ocurren de manera secuencial.
