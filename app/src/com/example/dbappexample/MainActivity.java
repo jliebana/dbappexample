@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
 		// We check that the key is right
 		checkAppKeySetup();
 
-		setContentView(R.layout.main_activity);
+		setContentView(R.layout.main_layout);
 		mainLabel = (TextView) findViewById(R.id.main_label);
 		mainLabel.setText("Connecting to dropbox...");
 
@@ -117,8 +117,9 @@ public class MainActivity extends Activity {
 		public void handleMessage(Message msg) {
 			super.handleMessage(msg);
 			listView = (ListView) findViewById(R.id.list_view);
-			progressbar = (ProgressBar) findViewById(R.id.loading_progress_bar);
 			listView.setAdapter(new ListAdapter(context, epubsEntries));
+
+			progressbar = (ProgressBar) findViewById(R.id.loading_progress_bar);
 
 			mainLabel.setVisibility(View.GONE);
 			progressbar.setVisibility(View.GONE);
@@ -135,35 +136,35 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				if (epubsEntries.size() != 0) {
-					epubsEntries.clear();
-				}
-				Entry dirent;
-				try {
-					LinkedList<String> dir = new LinkedList<String>();
-					dir.add("/example"); // FIXME
-					while (dir.size() != 0) {
-						String currentDir = new String(dir.pop());
-						Log.d(TAG, "Current dir: " + currentDir);
-						dirent = mDBApi.metadata(currentDir, 0, null, true, null);
-						for (Entry currentEntry : dirent.contents) {
-							if (currentEntry.isDir) {
-								dir.push(new String(currentEntry.path));
-								Log.d(TAG, "DIR: " + currentEntry.path);
-							}
-							else {
-								Log.d(TAG, "DATA: " + currentEntry.path);
-								if (currentEntry.path.endsWith("epub")) {
-									Log.d(TAG, "EPUB: " + currentEntry.path);
-									epubsEntries.add(currentEntry);
+				if (epubsEntries.size() == 0) {
+					// If there are already entries, we don't check for new ones
+					Entry dirent;
+					try {
+						LinkedList<String> dir = new LinkedList<String>();
+						dir.add("/");
+						while (dir.size() != 0) {
+							String currentDir = new String(dir.pop());
+							Log.d(TAG, "Current dir: " + currentDir);
+							dirent = mDBApi.metadata(currentDir, 0, null, true, null);
+							for (Entry currentEntry : dirent.contents) {
+								if (currentEntry.isDir) {
+									dir.push(new String(currentEntry.path));
+									Log.d(TAG, "DIR: " + currentEntry.path);
+								}
+								else {
+									Log.d(TAG, "DATA: " + currentEntry.path);
+									if (currentEntry.path.endsWith("epub")) {
+										Log.d(TAG, "EPUB: " + currentEntry.path);
+										epubsEntries.add(currentEntry);
+									}
 								}
 							}
 						}
+						Log.d(TAG, "DONE");
+					} catch (DropboxException e) {
+						Log.e(TAG, "Error retrieving files");
+						e.printStackTrace();
 					}
-					Log.d(TAG, "DONE");
-				} catch (DropboxException e) {
-					Log.e(TAG, "Error retrieving files");
-					e.printStackTrace();
 				}
 				handler.sendEmptyMessage(0);
 			}
@@ -293,10 +294,10 @@ public class MainActivity extends Activity {
 	 * puts those values that are bigger than the pivot at right, and the
 	 * smaller ones at the left. Once the indexes i and j cross, the pivot is
 	 * located at the position of j and both sub-arrays (left and right) are
-	 * sorted again. 
+	 * sorted again.
 	 * 
-	 * If the array is not sorted, the time is expected to be O(n log n).
-	 * In the worst case, the time might be O(n^2)
+	 * If the array is not sorted, the time is expected to be O(n log n). In the
+	 * worst case, the time might be O(n^2)
 	 * 
 	 * This implementation is generic for any Comparable values
 	 */

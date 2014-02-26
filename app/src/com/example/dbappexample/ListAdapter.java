@@ -10,10 +10,12 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.dropbox.client2.DropboxAPI.Entry;
+
 /**
  * Adapter used for the list elements
+ * 
  * @author jliebana
- *
+ * 
  */
 public class ListAdapter extends BaseAdapter {
 
@@ -35,6 +37,9 @@ public class ListAdapter extends BaseAdapter {
 		if (convertView == null) {
 			gridView = new View(context);
 			gridView = inflater.inflate(R.layout.item_layout, null);
+
+			MyClickableImageView icon = (MyClickableImageView) gridView.findViewById(R.id.list_item_image);
+			icon.setId(position);
 			TextView itemLabel = (TextView) gridView.findViewById(R.id.list_item_label);
 			itemLabel.setText(items.get(position).fileName());
 			TextView itemDate = (TextView) gridView.findViewById(R.id.list_item_date);
@@ -61,5 +66,4 @@ public class ListAdapter extends BaseAdapter {
 	public long getItemId(int position) {
 		return items.get(position).hashCode();
 	}
-
 }

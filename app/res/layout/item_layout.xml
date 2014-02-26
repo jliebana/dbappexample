@@ -4,13 +4,12 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal" >
 
-    <ImageView
+    <com.example.dbappexample.MyClickableImageView
         android:id="@+id/list_item_image"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_alignParentLeft="true"
-        android:src="@drawable/ic_launcher" >
-    </ImageView>
+        android:src="@drawable/ic_launcher" />
 
     <TextView
         android:id="@+id/list_item_label"
@@ -24,8 +23,8 @@
         android:id="@+id/list_item_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/list_item_label"
         android:layout_alignParentRight="true"
+        android:layout_below="@id/list_item_label"
         android:layout_marginTop="5dp"
         android:textSize="12sp" >
     </TextView>

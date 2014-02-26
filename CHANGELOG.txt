@@ -28,3 +28,11 @@ En este documento se detallan los cambios producidos en el proyecto (de más anti
 -Se ha cambiado la vista de la lista, en lugar de una cuadricula se utiliza una lista para poder mostrar facilmente la fecha de creación así como el nombre del fichero.
 -Se ha añadido el método quicksort para ordenar arrays. Se ha realizado una implementación genérica para poder ordenar cualquier clase que implemente la interfaz "Comparable", por lo que se puede usar el mismo método para fechas como para strings. De momento la ordenación es de menor a mayor.
 -Se han añadido los botones en el menú para realizar esta ordenación.
+
+4.-Doble click abre la portada del libro.
+-----------------------------------------
+-El primer paso ha sido crear un nuevo activity que muestre una imagen cuando el usuario haga doble click en un elemento de la lista. En un primer paso hasta tener la portada del libro, se muestra una imagen genérica.
+-Como de la nueva activity se vuelve a la activity anterior, para evitar estar descargando los mismos elementos continuamente, se evita que la lista se actualice si esta ya tenía elementos. Esto debería de ser tratado de mejor manera en una aplicación real para que los datos entre dropbox y nuestra aplicación estuvieran sincronizados. Por simplificar la aplicación, esto no se implementa de momento.
+
+-Por otra parte, para poder detectar eventos de "doble click" en los iconos necesitamos que cada imagen tenga asociada un GestureListener, por lo que se crea una ImageView personalizada que incluya este Listener.
+-Además, este imageview llevará asociado el índice del elemento al que se está haciendo click, para poder mandar a la activity que muestra la imagen, la información del epub correspondiente (ya que posteriormente se mostrará la portada de dicho epub)
