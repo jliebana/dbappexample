@@ -1,6 +1,8 @@
 package com.example.dbappexample;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedList;
 
 import android.app.Activity;
@@ -15,8 +17,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.GridView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -26,10 +31,12 @@ import com.dropbox.client2.android.AndroidAuthSession;
 import com.dropbox.client2.android.AuthActivity;
 import com.dropbox.client2.exception.DropboxException;
 import com.dropbox.client2.session.AppKeyPair;
+
 /**
- *  Main Activity of the app.
+ * Main Activity of the app.
+ * 
  * @author jliebana
- *
+ * 
  */
 public class MainActivity extends Activity {
 
@@ -47,9 +54,10 @@ public class MainActivity extends Activity {
 	final static private String ACCESS_SECRET_NAME = "ACCESS_SECRET";
 
 	private TextView mainLabel;
-	private final ArrayList<Entry> epubsEntries = new ArrayList<Entry>();
+	private ArrayList<Entry> epubsEntries = new ArrayList<Entry>();
 
 	private ProgressBar progressbar;
+	private ListView listView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -108,13 +116,13 @@ public class MainActivity extends Activity {
 		@Override
 		public void handleMessage(Message msg) {
 			super.handleMessage(msg);
-			GridView gridView = (GridView) findViewById(R.id.gridView1);
+			listView = (ListView) findViewById(R.id.list_view);
 			progressbar = (ProgressBar) findViewById(R.id.loading_progress_bar);
-			gridView.setAdapter(new GridItemAdapter(context, epubsEntries));
-			
+			listView.setAdapter(new ListAdapter(context, epubsEntries));
+
 			mainLabel.setVisibility(View.GONE);
 			progressbar.setVisibility(View.GONE);
-			gridView.setVisibility(View.VISIBLE);
+			listView.setVisibility(View.VISIBLE);
 		}
 	};
 
@@ -127,11 +135,13 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-
+				if (epubsEntries.size() != 0) {
+					epubsEntries.clear();
+				}
 				Entry dirent;
 				try {
 					LinkedList<String> dir = new LinkedList<String>();
-					dir.add("/");
+					dir.add("/example"); // FIXME
 					while (dir.size() != 0) {
 						String currentDir = new String(dir.pop());
 						Log.d(TAG, "Current dir: " + currentDir);
@@ -225,4 +235,107 @@ public class MainActivity extends Activity {
 		edit.commit();
 
 	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main_menu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle item selection
+		switch (item.getItemId()) {
+			case R.id.sort_by_name:
+				sortByName();
+				return true;
+			case R.id.sort_by_date:
+				sortByDate();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
+
+	private void sortByName() {
+		Object[] list = epubsEntries.toArray();
+		Comparable[] values = new String[list.length];
+		for (int i = 0; i < list.length; i++) {
+			values[i] = ((Entry) list[i]).fileName();
+		}
+		quicksort(list, values, 0, values.length - 1);
+		for (int i = 0; i < list.length; i++) {
+			Log.d(TAG, ((Entry) list[i]).fileName());
+		}
+		epubsEntries = new ArrayList(Arrays.asList(list));
+		listView.setAdapter(new ListAdapter(context, epubsEntries));
+	}
+
+	private void sortByDate() {
+		Object[] list = epubsEntries.toArray();
+		Comparable[] values = new Date[list.length];
+		for (int i = 0; i < list.length; i++) {
+			values[i] = new Date(((Entry) list[i]).clientMtime);
+		}
+		quicksort(list, values, 0, values.length - 1);
+		for (int i = 0; i < list.length; i++) {
+			Log.d(TAG, ((Entry) list[i]).fileName());
+		}
+		epubsEntries = new ArrayList(Arrays.asList(list));
+		listView.setAdapter(new ListAdapter(context, epubsEntries));
+	}
+
+	/**
+	 * The quicksort method is a recursive way to sort an array. Basically it
+	 * selects a pivot (in this case the first element of the array), and two
+	 * indices (i and j) which start from both extremes of the array. The method
+	 * puts those values that are bigger than the pivot at right, and the
+	 * smaller ones at the left. Once the indexes i and j cross, the pivot is
+	 * located at the position of j and both sub-arrays (left and right) are
+	 * sorted again. 
+	 * 
+	 * If the array is not sorted, the time is expected to be O(n log n).
+	 * In the worst case, the time might be O(n^2)
+	 * 
+	 * This implementation is generic for any Comparable values
+	 */
+	public void quicksort(Object list[], Comparable values[], int left, int right) {
+
+		Comparable pivot = values[left];
+		int i = left;
+		int j = right;
+		Comparable aux;
+		Object aux2;
+
+		while (i < j) {
+			while (values[i].compareTo(pivot) <= 0 && i < j)
+				i++;
+			while (values[j].compareTo(pivot) > 0)
+				j--;
+			if (i < j) {
+				aux = values[i];
+				values[i] = values[j];
+				values[j] = aux;
+
+				aux2 = list[i];
+				list[i] = list[j];
+				list[j] = aux2;
+			}
+		}
+		// Now we need to relocate the pivot in the position of j
+		aux = values[left];
+		values[left] = values[j];
+		values[j] = values[left];
+
+		aux2 = list[left];
+		list[left] = list[j];
+		list[j] = aux2;
+
+		if (left < j - 1)
+			quicksort(list, values, left, j - 1);
+		if (j + 1 < right)
+			quicksort(list, values, j + 1, right);
+	}
+
 }

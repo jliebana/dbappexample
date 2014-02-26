@@ -22,3 +22,9 @@ En este documento se detallan los cambios producidos en el proyecto (de más anti
 -Para construir esta lista se van revisando todos los directorios de Dropbox, y añadiendo a esta lista aquellos ficheros cuya extensión coincida con la deseada: ".epub".
 -Una vez construida, esta lista se muestra por pantalla, utilizando un icono (por el momento una imagen cualquiera) junto con el nombre del fichero.
 -Se ha decidido seguir utilizando la misma Activity que la implementada en la autenticación, ya que de momento ambas tareas ocurren de manera secuencial.
+
+3.- Añadida ordenación de la lista
+-----------------------------------
+-Se ha cambiado la vista de la lista, en lugar de una cuadricula se utiliza una lista para poder mostrar facilmente la fecha de creación así como el nombre del fichero.
+-Se ha añadido el método quicksort para ordenar arrays. Se ha realizado una implementación genérica para poder ordenar cualquier clase que implemente la interfaz "Comparable", por lo que se puede usar el mismo método para fechas como para strings. De momento la ordenación es de menor a mayor.
+-Se han añadido los botones en el menú para realizar esta ordenación.

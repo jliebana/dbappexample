@@ -11,16 +11,16 @@ import android.widget.TextView;
 
 import com.dropbox.client2.DropboxAPI.Entry;
 /**
- * Adapter used for the grid elements
+ * Adapter used for the list elements
  * @author jliebana
  *
  */
-public class GridItemAdapter extends BaseAdapter {
+public class ListAdapter extends BaseAdapter {
 
 	private final Context context;
 	private final ArrayList<Entry> items;
 
-	public GridItemAdapter(Context context, ArrayList<Entry> items) {
+	public ListAdapter(Context context, ArrayList<Entry> items) {
 		this.context = context;
 		this.items = items;
 	}
@@ -35,8 +35,10 @@ public class GridItemAdapter extends BaseAdapter {
 		if (convertView == null) {
 			gridView = new View(context);
 			gridView = inflater.inflate(R.layout.item_layout, null);
-			TextView textView = (TextView) gridView.findViewById(R.id.grid_item_label);
-			textView.setText(items.get(position).fileName());
+			TextView itemLabel = (TextView) gridView.findViewById(R.id.list_item_label);
+			itemLabel.setText(items.get(position).fileName());
+			TextView itemDate = (TextView) gridView.findViewById(R.id.list_item_date);
+			itemDate.setText(items.get(position).clientMtime);
 		}
 		else {
 			gridView = convertView;
