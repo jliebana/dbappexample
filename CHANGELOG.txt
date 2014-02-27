@@ -26,7 +26,7 @@ En este documento se detallan los cambios producidos en el proyecto (de más anti
 3.- Añadida ordenación de la lista
 -----------------------------------
 -Se ha cambiado la vista de la lista, en lugar de una cuadricula se utiliza una lista para poder mostrar facilmente la fecha de creación así como el nombre del fichero.
--Se ha añadido el método quicksort para ordenar arrays. Se ha realizado una implementación genérica para poder ordenar cualquier clase que implemente la interfaz "Comparable", por lo que se puede usar el mismo método para fechas como para strings. De momento la ordenación es de menor a mayor.
+-Se ha añadido el método quicksort para ordenar arrays. Se ha realizado una implementación genérica para poder ordenar cualquier clase que implemente la interfaz "Comparable", por lo que se puede usar el mismo método para fechas como para strings. De momento la ordenación es siempre de menor a mayor.
 -Se han añadido los botones en el menú para realizar esta ordenación.
 
 4.-Doble click abre la portada del libro.
@@ -36,3 +36,12 @@ En este documento se detallan los cambios producidos en el proyecto (de más anti
 
 -Por otra parte, para poder detectar eventos de "doble click" en los iconos necesitamos que cada imagen tenga asociada un GestureListener, por lo que se crea una ImageView personalizada que incluya este Listener.
 -Además, este imageview llevará asociado el índice del elemento al que se está haciendo click, para poder mandar a la activity que muestra la imagen, la información del epub correspondiente (ya que posteriormente se mostrará la portada de dicho epub)
+
+5.-Descarga de ebooks y lectura de su contenido
+------------------------------------------------
+-Hasta ahora sólo estabamos descargando los metadatos de los ficheros correspondientes a epubs. Para poder mostrar el nombre del ebook en lugar del nombre del fichero así como poder mostrar la portada, necesitamos descargar los ficheros completos (sólo si no estaban previamente descargados).
+-Actualizamos la lista, en lugar de utilizar la clase "Entry" de la API de dropbox, creamos una clase propia.
+
+-Para leer los ebooks usamos la librería epublib disponible en http://www.siegmann.nl/epublib/android
+-Ahora se almacena el título leyéndolo con la anterior librería.
+-Los iconos de la lista almacenan ahora el path del ebook, de tal manera que este se adjunta como extra en el Intent cuando se realiza el doble click sobre los iconos. Este path es recibido en la activity DisplayImageActivity, que muestra por pantalla la portada del ebook, que se lee utilizando la libreria previamente.

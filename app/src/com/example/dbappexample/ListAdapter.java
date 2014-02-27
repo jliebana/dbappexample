@@ -9,8 +9,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.dropbox.client2.DropboxAPI.Entry;
-
 /**
  * Adapter used for the list elements
  * 
@@ -20,9 +18,9 @@ import com.dropbox.client2.DropboxAPI.Entry;
 public class ListAdapter extends BaseAdapter {
 
 	private final Context context;
-	private final ArrayList<Entry> items;
+	private final ArrayList<EbookEntry> items;
 
-	public ListAdapter(Context context, ArrayList<Entry> items) {
+	public ListAdapter(Context context, ArrayList<EbookEntry> items) {
 		this.context = context;
 		this.items = items;
 	}
@@ -39,11 +37,12 @@ public class ListAdapter extends BaseAdapter {
 			gridView = inflater.inflate(R.layout.item_layout, null);
 
 			MyClickableImageView icon = (MyClickableImageView) gridView.findViewById(R.id.list_item_image);
-			icon.setId(position);
+			EbookEntry ebookEntry = items.get(position);
+			icon.setPath(ebookEntry.getLocalPath());
 			TextView itemLabel = (TextView) gridView.findViewById(R.id.list_item_label);
-			itemLabel.setText(items.get(position).fileName());
+			itemLabel.setText(ebookEntry.getTitle());
 			TextView itemDate = (TextView) gridView.findViewById(R.id.list_item_date);
-			itemDate.setText(items.get(position).clientMtime);
+			itemDate.setText(ebookEntry.getDate().toLocaleString());
 		}
 		else {
 			gridView = convertView;

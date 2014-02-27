@@ -16,26 +16,21 @@ import android.widget.ImageView;
 public class MyClickableImageView extends ImageView {
 
 	private static final String TAG = "MyClickableImageView";
-	private static final String EBOOK_PATH = "EBOOK_PATH";
+	public static final String EBOOK_PATH = "EBOOK_PATH";
 
 	private final GestureDetector gestureDetector;
 
-	// id required for identifying element when double tapping it
-	private int id;
+	// path required for identifying element when double tapping it
+	private String path;
 
 	public MyClickableImageView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		gestureDetector = new GestureDetector(context, new GestureListener());
 	}
 
-	@Override
-	public int getId() {
-		return id;
-	}
-
-	@Override
-	public void setId(int id) {
-		this.id = id;
+	
+	public void setPath(String path) {
+		this.path = path;
 	}
 
 	@Override
@@ -52,10 +47,10 @@ public class MyClickableImageView extends ImageView {
 
 		@Override
 		public boolean onDoubleTap(MotionEvent e) {
-			Log.d(TAG, "Double tap detected for icon: " + id);
+			Log.d(TAG, "Double tap detected");
 			Context context = getContext();
 			Intent intent = new Intent(context, DisplayImageActivity.class);
-			intent.putExtra(EBOOK_PATH, "PATH");// FIXME
+			intent.putExtra(EBOOK_PATH, path);
 			context.startActivity(intent);
 			return true;
 		}

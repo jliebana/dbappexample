@@ -1,10 +1,15 @@
 package com.example.dbappexample;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 
+import nl.siegmann.epublib.domain.Book;
+import nl.siegmann.epublib.epub.EpubReader;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -54,7 +59,7 @@ public class MainActivity extends Activity {
 	final static private String ACCESS_SECRET_NAME = "ACCESS_SECRET";
 
 	private TextView mainLabel;
-	private ArrayList<Entry> epubsEntries = new ArrayList<Entry>();
+	private ArrayList<EbookEntry> ebooks = new ArrayList<EbookEntry>();
 
 	private ProgressBar progressbar;
 	private ListView listView;
@@ -117,7 +122,7 @@ public class MainActivity extends Activity {
 		public void handleMessage(Message msg) {
 			super.handleMessage(msg);
 			listView = (ListView) findViewById(R.id.list_view);
-			listView.setAdapter(new ListAdapter(context, epubsEntries));
+			listView.setAdapter(new ListAdapter(context, ebooks));
 
 			progressbar = (ProgressBar) findViewById(R.id.loading_progress_bar);
 
@@ -136,35 +141,63 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void run() {
-				if (epubsEntries.size() == 0) {
-					// If there are already entries, we don't check for new ones
-					Entry dirent;
-					try {
-						LinkedList<String> dir = new LinkedList<String>();
-						dir.add("/");
-						while (dir.size() != 0) {
-							String currentDir = new String(dir.pop());
-							Log.d(TAG, "Current dir: " + currentDir);
-							dirent = mDBApi.metadata(currentDir, 0, null, true, null);
-							for (Entry currentEntry : dirent.contents) {
-								if (currentEntry.isDir) {
-									dir.push(new String(currentEntry.path));
-									Log.d(TAG, "DIR: " + currentEntry.path);
-								}
-								else {
-									Log.d(TAG, "DATA: " + currentEntry.path);
-									if (currentEntry.path.endsWith("epub")) {
-										Log.d(TAG, "EPUB: " + currentEntry.path);
-										epubsEntries.add(currentEntry);
+				
+				if(ebooks.size()!=0){
+					//If we already have the ebooks, we don't donwload anything
+					return;
+				}
+				
+				Entry dirent;
+				// First we get the files that we downloaded already, so we
+				// don't download them twice
+				ArrayList<String> fileList = new ArrayList<String>(Arrays.asList(fileList()));
+				try {
+					LinkedList<String> dir = new LinkedList<String>();
+					// Then we start exploring the db directory from "/"
+					dir.add("/");
+					while (dir.size() != 0) {
+						String currentDir = new String(dir.pop());
+						Log.d(TAG, "Current dir: " + currentDir);
+						dirent = mDBApi.metadata(currentDir, 0, null, true, null);
+						for (Entry currentEntry : dirent.contents) {
+							if (currentEntry.isDir) {
+								dir.push(new String(currentEntry.path));
+								Log.d(TAG, "DIR: " + currentEntry.path);
+							}
+							else {
+								Log.d(TAG, "DATA: " + currentEntry.path);
+								if (currentEntry.path.endsWith("epub")) {
+									Log.d(TAG, "EPUB: " + currentEntry.path);
+									String fileName = currentEntry.fileName();
+									if (!fileList.contains(fileName)) {
+										// Download ebook from Dropbox if we
+										// don't have it already
+										FileOutputStream fileOutput = openFileOutput(fileName, MODE_PRIVATE);
+										mDBApi.getFile(currentEntry.path, null, fileOutput, null);
+										fileOutput.close();
+
 									}
+									InputStream epubInputStream = openFileInput(fileName);
+									// Load Book from inputStream
+									Book book = (new EpubReader()).readEpub(epubInputStream);
+
+									epubInputStream.close();
+									String bookTitle = book.getTitle();
+									Log.i(TAG, "title: " + bookTitle);
+									// Now we create the entry we will use
+									Date bookDate = new Date(currentEntry.clientMtime);
+									ebooks.add(new EbookEntry(bookDate, bookTitle, fileName));
 								}
 							}
 						}
-						Log.d(TAG, "DONE");
-					} catch (DropboxException e) {
-						Log.e(TAG, "Error retrieving files");
-						e.printStackTrace();
 					}
+					Log.d(TAG, "DONE");
+				} catch (DropboxException e) {
+					Log.e(TAG, "Error retrieving files");
+					e.printStackTrace();
+				} catch (IOException e) {
+					Log.e(TAG, "Error creating local files");
+					e.printStackTrace();
 				}
 				handler.sendEmptyMessage(0);
 			}
@@ -260,31 +293,27 @@ public class MainActivity extends Activity {
 	}
 
 	private void sortByName() {
-		Object[] list = epubsEntries.toArray();
+		Object[] list = ebooks.toArray();
 		Comparable[] values = new String[list.length];
 		for (int i = 0; i < list.length; i++) {
-			values[i] = ((Entry) list[i]).fileName();
+			values[i] = ((EbookEntry) list[i]).getTitle();
 		}
 		quicksort(list, values, 0, values.length - 1);
-		for (int i = 0; i < list.length; i++) {
-			Log.d(TAG, ((Entry) list[i]).fileName());
-		}
-		epubsEntries = new ArrayList(Arrays.asList(list));
-		listView.setAdapter(new ListAdapter(context, epubsEntries));
+
+		ebooks = new ArrayList(Arrays.asList(list));
+		listView.setAdapter(new ListAdapter(context, ebooks));
 	}
 
 	private void sortByDate() {
-		Object[] list = epubsEntries.toArray();
+		Object[] list = ebooks.toArray();
 		Comparable[] values = new Date[list.length];
 		for (int i = 0; i < list.length; i++) {
-			values[i] = new Date(((Entry) list[i]).clientMtime);
+			values[i] = ((EbookEntry) list[i]).getDate();
 		}
 		quicksort(list, values, 0, values.length - 1);
-		for (int i = 0; i < list.length; i++) {
-			Log.d(TAG, ((Entry) list[i]).fileName());
-		}
-		epubsEntries = new ArrayList(Arrays.asList(list));
-		listView.setAdapter(new ListAdapter(context, epubsEntries));
+
+		ebooks = new ArrayList(Arrays.asList(list));
+		listView.setAdapter(new ListAdapter(context, ebooks));
 	}
 
 	/**

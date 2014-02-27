@@ -1,6 +1,12 @@
 package com.example.dbappexample;
 
+import java.io.InputStream;
+
+import nl.siegmann.epublib.domain.Book;
+import nl.siegmann.epublib.epub.EpubReader;
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -22,11 +28,17 @@ public class DisplayImageActivity extends Activity {
 	private ProgressBar progressbar;
 	private TextView loadingLabel;
 
+	private Bitmap coverImage = null;
+
+	private String localPath;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.display_image_layout);
+
+		localPath = (String) getIntent().getExtras().get(MyClickableImageView.EBOOK_PATH);
 
 		loadingLabel = (TextView) findViewById(R.id.display_image_label);
 		loadingLabel.setText("Loading epub image...");
@@ -47,6 +59,7 @@ public class DisplayImageActivity extends Activity {
 			loadingLabel.setVisibility(View.GONE);
 			progressbar.setVisibility(View.GONE);
 			ImageView image = (ImageView) findViewById(R.id.big_image);
+			image.setImageBitmap(coverImage);
 			image.setVisibility(View.VISIBLE);
 
 		}
@@ -60,8 +73,18 @@ public class DisplayImageActivity extends Activity {
 
 			@Override
 			public void run() {
-				// TODO load epub image
 				Log.d(TAG, "Loading image");
+				try {
+					InputStream epubInputStream = openFileInput(localPath);
+					Book book = (new EpubReader()).readEpub(epubInputStream);
+
+					/* Log the book's coverimage property */
+					coverImage = BitmapFactory.decodeStream(book.getCoverImage().getInputStream());
+				} catch (Exception e) {
+					Log.e(TAG, e.getMessage());
+					e.printStackTrace();
+				}
+
 				handler.sendEmptyMessage(0);
 			}
 		});
